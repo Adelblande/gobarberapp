@@ -1,7 +1,9 @@
-import React from 'react';
-import { Image, View, ScrollView } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Image, View, ScrollView, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import { Form } from '@unform/mobile';
+import { FormHandles } from '@unform/core';
 
 import Button from '../../components/Button';
 import Input from '../../components/Input';
@@ -19,6 +21,12 @@ import logoImg from '../../assets/logo.png';
 
 const SignIn: React.FC = () => {
   const navigation = useNavigation();
+  const formRef = useRef<FormHandles>(null);
+  const passwordInputRef = useRef<TextInput>(null);
+
+  const handleSignIn = useCallback(data => {
+    console.log('handleSignIn', data);
+  }, []);
   return (
     <>
       <ScrollView contentContainerStyle={{ marginTop: 40 }}>
@@ -27,8 +35,31 @@ const SignIn: React.FC = () => {
           <View>
             <Title>Faça seu login</Title>
           </View>
-          <Input name="email" icon="mail" placeholder="E-mail" />
-          <Input name="password" icon="lock" placeholder="Senha" />
+          <Form ref={formRef} onSubmit={handleSignIn}>
+            <Input
+              autoCorrect={false}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              name="email"
+              icon="mail"
+              placeholder="E-mail"
+              returnKeyType="next"
+              onSubmitEditing={() => {
+                passwordInputRef.current?.focus();
+              }}
+            />
+            <Input
+              ref={passwordInputRef}
+              secureTextEntry
+              returnKeyType="send"
+              name="password"
+              icon="lock"
+              placeholder="Senha"
+              onSubmitEditing={() => {
+                formRef.current?.submitForm();
+              }}
+            />
+          </Form>
           <Button
             onPress={() => {
               console.log('Aqui estou mais um dia...');

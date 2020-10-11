@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import getValidationErrors from '../../utils/getValidationErrors';
+import api from '../../services/api';
 
 import { Container, Title, BackToLogin, BackToLoginText } from './styles';
 
@@ -26,39 +27,42 @@ const SignUp: React.FC = () => {
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
-  const handleSignUp = useCallback(async (data: FormSignupData) => {
-    try {
-      formRef.current?.setErrors({});
-      const schema = Yup.object().shape({
-        name: Yup.string().required('Nome é obrigatório.'),
-        email: Yup.string()
-          .required('E-mail é obrigatório.')
-          .email('Digite um e-mail válido.'),
-        password: Yup.string().required('Senha é obrigatória.'),
-      });
+  const handleSignUp = useCallback(
+    async (data: FormSignupData) => {
+      try {
+        formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          name: Yup.string().required('Nome é obrigatório.'),
+          email: Yup.string()
+            .required('E-mail é obrigatório.')
+            .email('Digite um e-mail válido.'),
+          password: Yup.string().required('Senha é obrigatória.'),
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-      // await api.post('/users', data);
+        await api.post('/users', data);
 
-      Alert.alert('success', 'Login cadastrado com sucesso.');
+        Alert.alert('success', 'Login cadastrado com sucesso.');
 
-      // history.push('/');
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(err);
-        formRef.current?.setErrors(errors);
-        return;
+        navigation.goBack();
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
+          formRef.current?.setErrors(errors);
+          return;
+        }
+
+        Alert.alert(
+          'Erro na criação do login',
+          'Ocorreu um problema na criação do seu login, tente novamente.',
+        );
       }
-
-      Alert.alert(
-        'Erro na criação do login',
-        'Ocorreu um problema na criação do seu login, tente novamente.',
-      );
-    }
-  }, []);
+    },
+    [navigation],
+  );
 
   return (
     <>

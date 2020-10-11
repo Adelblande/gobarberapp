@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import getValidationErrors from '../../utils/getValidationErrors';
+import { useAuth } from '../../hooks/AuthContext';
 
 import {
   Container,
@@ -31,31 +32,36 @@ const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
-  const handleSignIn = useCallback(async (data: SignInCredencials) => {
-    try {
-      formRef.current?.setErrors({});
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .required('E-mail é obrigatório.')
-          .email('Digite um e-mail válido.'),
-        password: Yup.string().required('Senha é obrigatória.'),
-      });
+  const { signIn, user } = useAuth();
+  console.log(user);
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-      // await signIn({ email: data.email, password: data.password });
-      // history.push('/dashboard');
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(err);
-        formRef.current?.setErrors(errors);
-        return;
+  const handleSignIn = useCallback(
+    async (data: SignInCredencials) => {
+      try {
+        formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .required('E-mail é obrigatório.')
+            .email('Digite um e-mail válido.'),
+          password: Yup.string().required('Senha é obrigatória.'),
+        });
+
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+        await signIn({ email: data.email, password: data.password });
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
+          formRef.current?.setErrors(errors);
+          return;
+        }
+
+        Alert.alert('Erro na autenticação', 'E-mail ou senha inválido.');
       }
-
-      Alert.alert('Erro na autenticação', 'E-mail ou senha inválido.');
-    }
-  }, []);
+    },
+    [signIn],
+  );
   return (
     <>
       <ScrollView contentContainerStyle={{ marginTop: 40 }}>
